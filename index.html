@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meeting Summarizer</title>
+  <!-- Google Fonts - DM Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="css/design-tokens.css">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/button.css">
+  <!-- GSAP动画库 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <!-- JavaScript模块 -->
+  <script src="js/animations.js"></script>
+  <script src="js/test-simulator.js"></script>
+  <script src="js/page-controller.js"></script>
+  <script src="js/main.js"></script>
+</head>
+
+<body>
+  <div class="page" id="page-1">
+    <div class="left-part">
+      <div class="text-5xl text-bold ">
+        Meeting Summarizer
+      </div>
+      <div class="text-2xl">
+        A meeting summarization application based on Python and Deepseek, supporting the upload
+        of local meeting files and online recording of Zoom meetings, generating meeting transcripts and summary
+        documents.
+      </div>
+      <div class="button-container">
+        <div class="button button-style-1 button-fullWidth">
+          <span class="text-md ">Start</span>
+        </div>
+      </div>
+    </div>
+    <div class="right-part">
+      <div class="automation">
+
+      </div>
+    </div>
+  </div>
+  <div class="page" id="page-2">
+    <div class="top-part">
+      <div class="text-3xl text-bold">Meeting Summarizer</div>
+      <div class="text-6xl text-bold">Select Meeting Source</div>
+      <div class="text-sm step-indicator">
+        <span class="step-active">Select Meeting Source</span> →
+        <span class="step-inactive">Transcribe the Meeting File</span> →
+        <span class="step-inactive">Generate Summary</span>
+      </div>
+    </div>
+    <div class="bottom-part">
+      <div class="card-container">
+        <div class="card">
+          <div class="text-3xl text-bold">Upload</div>
+          <div class="text-xl">Upload your local meeting file</div>
+          <div class="text-md"> MP3、MP4、WAV、M4A<br>Less than 10mb</div>
+          <div class="file-upload">
+            <input type="file" id="file-input-hidden" style="display: none;" accept=".mp3,.mp4,.wav,.m4a">
+            <div class="file-input" id="file-input-area" onclick="document.getElementById('file-input-hidden').click()">
+              <div class="text-sm" id="file-input-text">Choose a file</div>
+              <svg id="upload-icon" width="28" height="28" viewBox="0 0 32 32" fill="none"
+                xmlns="http://www.w3.org/2000/svg">
+                <path
+                  d="M25.5 18.9231V22.5769C25.5 24.1913 24.1913 25.5 22.5769 25.5L9.42308 25.5C7.80871 25.5 6.5 24.1913 6.5 22.5769L6.5 18.9231M16 21.1154L16 6.5M16 6.5L11.6154 10.8846M16 6.5L20.3846 10.8846"
+                  stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+              <button class="clear-button" id="file-clear-button" style="display: none;"
+                onclick="event.stopPropagation(); clearFileSelection()">
+                <svg width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M7 7L16 16M16 16L7 25M16 16L25 25M16 16L25 7" stroke="currentColor" stroke-linecap="round"
+                    stroke-linejoin="round" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="text-3xl text-bold">Record</div>
+          <div class="text-xl">Input Zoom meeting link</div>
+          <div class="text-md">Zoom meeting link</div>
+          <div class="meeting-link">
+            <div class="link-input-container">
+              <input type="text" placeholder="Zoom Meeting Link" class="link-input" id="zoom-link-input">
+              <button class="clear-button" id="link-clear-button" style="display: none;" onclick="clearLinkInput()">
+                <svg width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M7 7L16 16M16 16L7 25M16 16L25 25M16 16L25 7" stroke="currentColor" stroke-linecap="round"
+                    stroke-linejoin="round" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="text-3xl text-bold">Live Record</div>
+          <div class="text-xl">Record media audio manually</div>
+          <div class="text-md">Click to start/stop recording</div>
+          <div class="live-record">
+            <div class="file-input" id="record-input-area" onclick="toggleLiveRecording()">
+              <div class="text-sm" id="record-input-text">Start Recording</div>
+              <svg id="record-icon" width="28" height="28" viewBox="0 0 32 32" fill="none"
+                xmlns="http://www.w3.org/2000/svg">
+                <path
+                  d="M23.3154 13.8077V15.2692C23.3154 19.3052 20.0436 22.5769 16.0077 22.5769C11.9718 22.5769 8.7 19.3052 8.7 15.2692V13.8077M16.0077 23.3077V25.5M16.0077 25.5H18.9308M16.0077 25.5H13.0846M16.0077 19.6538C13.5861 19.6538 11.6231 17.6908 11.6231 15.2692V10.8846C11.6231 8.46306 13.5861 6.5 16.0077 6.5C18.4292 6.5 20.3923 8.46306 20.3923 10.8846V15.2692C20.3923 17.6908 18.4292 19.6538 16.0077 19.6538Z"
+                  stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+              <button class="clear-button" id="record-clear-button" onclick="clearLiveRecording(event)"
+                style="display: none;">
+                <svg width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M7 7L16 16M16 16L7 25M16 16L25 25M16 16L25 7" stroke="currentColor" stroke-linecap="round"
+                    stroke-linejoin="round" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="button-container">
+        <div class="button button-style-1">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M15.375 18.75L8.625 12L15.375 5.25" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+              stroke-linejoin="round" />
+          </svg>
+          <span>Back</span>
+        </div>
+        <div class="button button-style-1">
+          <span>Next</span>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M8.625 18.75L15.375 12L8.625 5.25" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+              stroke-linejoin="round" />
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="page" id="page-3">
+    <div class="top-part">
+      <div class="text-3xl text-bold">Meeting Summarizer</div>
+      <div class="text-6xl text-bold">Transcribe the Meeting File</div>
+      <div class="text-sm step-indicator">
+        <span class="step-inactive">Select Meeting Source</span> →
+        <span class="step-active">Transcribe the Meeting File</span> →
+        <span class="step-inactive">Generate Summary</span>
+      </div>
+    </div>
+    <div class="bottom-part">
+      <div class="transcription-container">
+        <div class="transcription-box">
+          <div class="transcription-header">
+            <div class="text-3xl text-bold">Transcription</div>
+            <div class="transcription-controls">
+              <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path
+                  d="M19.2884 13.0769H22.5C24.1568 13.0769 25.5 14.4201 25.5 16.0769V22.5C25.5 24.1568 24.1568 25.5 22.5 25.5H16.0769C14.4201 25.5 13.0769 24.1568 13.0769 22.5V19.2884M9.5 18.9231H15.9231C17.5799 18.9231 18.9231 17.5799 18.9231 15.9231V9.5C18.9231 7.84315 17.5799 6.5 15.9231 6.5H9.5C7.84315 6.5 6.5 7.84315 6.5 9.5V15.9231C6.5 17.5799 7.84315 18.9231 9.5 18.9231Z"
+                  stroke="black" />
+              </svg>
+              <svg width="24" height="24" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path
+                  d="M16 6.5L16 21.1155M16 21.1155L11.6154 16.7308M16 21.1155L20.3847 16.7308M6.49994 18.923V22.5769C6.49994 24.1913 7.80865 25.5 9.42303 25.5H22.577C24.1913 25.5 25.5 24.1913 25.5 22.5769V18.923"
+                  stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+              <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path
+                  d="M15.9999 25.5L16 6.5M11.25 21.6329L11.2499 10.3671M6.50002 18.5392L6.49992 13.4608M20.7499 21.6329L20.75 10.3671M25.4999 18.5392L25.5 13.4608"
+                  stroke="black" stroke-linecap="round" />
+              </svg>
+            </div>
+          </div>
+          <div class="transcription-content">
+            <div id="transcription-loading" class="loading-container">
+              <div class="loading-spinner"></div>
+            </div>
+            <div id="transcription-text" class="content-text" style="display: none;">
+              <!-- 转录文本将通过JavaScript动态加载 -->
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="button-container">
+        <div class="button button-style-1">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M15.375 18.75L8.625 12L15.375 5.25" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+              stroke-linejoin="round" />
+          </svg>
+          <span>Back</span>
+        </div>
+        <div class="button button-style-1">
+          <span>Next</span>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M8.625 18.75L15.375 12L8.625 5.25" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+              stroke-linejoin="round" />
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="page" id="page-4">
+    <div class="top-part">
+      <div class="text-3xl text-bold">Meeting Summarizer</div>
+      <div class="text-6xl text-bold">Generate Summary</div>
+      <div class="text-sm step-indicator">
+        <span class="step-inactive">Select Meeting Source</span> →
+        <span class="step-inactive">Transcribe the Meeting File</span> →
+        <span class="step-active">Generate Summary</span>
+      </div>
+    </div>
+    <div class="bottom-part">
+      <div class="summary-container">
+        <div class="summary-box">
+          <div class="summary-header">
+            <div class="text-3xl text-bold">Summary</div>
+            <div class="summary-controls">
+              <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path
+                  d="M19.2884 13.0769H22.5C24.1568 13.0769 25.5 14.4201 25.5 16.0769V22.5C25.5 24.1568 24.1568 25.5 22.5 25.5H16.0769C14.4201 25.5 13.0769 24.1568 13.0769 22.5V19.2884M9.5 18.9231H15.9231C17.5799 18.9231 18.9231 17.5799 18.9231 15.9231V9.5C18.9231 7.84315 17.5799 6.5 15.9231 6.5H9.5C7.84315 6.5 6.5 7.84315 6.5 9.5V15.9231C6.5 17.5799 7.84315 18.9231 9.5 18.9231Z"
+                  stroke="black" />
+              </svg>
+              <svg width="24" height="24" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path
+                  d="M16 6.5L16 21.1155M16 21.1155L11.6154 16.7308M16 21.1155L20.3847 16.7308M6.49994 18.923V22.5769C6.49994 24.1913 7.80865 25.5 9.42303 25.5H22.577C24.1913 25.5 25.5 24.1913 25.5 22.5769V18.923"
+                  stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+              <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path
+                  d="M15.9999 25.5L16 6.5M11.25 21.6329L11.2499 10.3671M6.50002 18.5392L6.49992 13.4608M20.7499 21.6329L20.75 10.3671M25.4999 18.5392L25.5 13.4608"
+                  stroke="black" stroke-linecap="round" />
+              </svg>
+            </div>
+          </div>
+          <div class="summary-content">
+            <div id="summary-loading" class="loading-container">
+              <div class="loading-spinner"></div>
+            </div>
+            <div id="summary-text" class="content-text" style="display: none;">
+              <!-- 总结文本将通过JavaScript动态加载 -->
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="button-container">
+        <div class="button button-style-1">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M15.375 18.75L8.625 12L15.375 5.25" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+              stroke-linejoin="round" />
+          </svg>
+          <span>Back</span>
+        </div>
+        <div class="button button-style-1">
+          <span>Finish</span>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M8.625 18.75L15.375 12L8.625 5.25" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+              stroke-linejoin="round" />
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>

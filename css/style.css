@@ -1,0 +1,586 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: var(--font-family-primary);
+}
+
+body {
+  width: 100dvw;
+  height: 100dvh;
+  min-width: 1440px;
+  background: #ffffff;
+}
+
+/* 基础页面样式，默认隐藏 */
+
+.left-part {
+  display: flex;
+  justify-content: space-evenly;
+  flex-direction: column;
+  width: 600px;
+}
+
+.left-part>* {
+  opacity: 0;
+}
+
+.right-part {
+  display: flex;
+  width: 680px;
+  height: 100%;
+  border-radius: 20px;
+}
+
+.right-part>* {
+  opacity: 0;
+}
+
+.top-part {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.bottom-part {
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+}
+
+/* page-1 */
+.automation {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--color-main-goku);
+}
+
+/* page-2 */
+.card-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  height: 480px;
+  gap: 20px;
+}
+
+.button-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: 32px;
+}
+
+.card {
+  width: 100%;
+  max-width: 540px;
+  border-radius: 20px;
+  background: var(--color-main-goku);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.card-icon {
+  margin-bottom: 8px;
+}
+
+.card-icon svg {
+  width: 48px;
+  height: 48px;
+  stroke: var(--color-main-piccolo);
+}
+
+/* Live Record 样式 */
+.live-record {
+  margin-top: auto;
+  width: 100%;
+}
+
+/* 录制状态样式 */
+.file-input.recording {
+  border-color: #ef4444;
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.file-input.recording #record-icon {
+  color: #ef4444;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* 页面切换样式 */
+.page {
+  display: none;
+}
+
+.page.active {
+  width: 100%;
+  height: 100%;
+  min-width: 1440px;
+  min-height: 800px;
+  padding: 64px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 32px;
+}
+
+.page:first-child.active {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+
+
+.file-upload {
+  margin-top: auto;
+  width: 100%;
+}
+
+.file-input {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border: 1px solid var(--color-main-gohan);
+  border-radius: 8px;
+  cursor: pointer;
+  width: 100%;
+  background: var(--color-main-gohan);
+  transition: border-color 0.2s ease;
+}
+
+.file-input:active {
+  border-color: var(--color-main-piccolo);
+}
+
+/* 文件输入成功状态 */
+.file-input.success {
+  border-color: #10b981;
+  background: #ecfdf5;
+  color: #065f46;
+}
+
+.file-input.success:hover {
+  border-color: #059669;
+  background: #d1fae5;
+}
+
+/* 文件输入错误状态 */
+.file-input.error {
+  border-color: #ef4444;
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.file-input.error:hover {
+  border-color: #dc2626;
+  background: #fee2e2;
+}
+
+.meeting-link {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.meeting-link .text-sm {
+  align-self: flex-start;
+}
+
+.link-input-container {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  position: relative;
+}
+
+.link-input-container .clear-button {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.link-input {
+  width: 100%;
+  padding: 12px 16px;
+  padding-right: 48px;
+  border: 1px solid var(--color-main-gohan);
+  border-radius: 8px;
+  font-size: 14px;
+  height: 56px;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease;
+  outline: none;
+}
+
+.link-input:focus,
+.link-input:active {
+  border-color: var(--color-main-piccolo);
+}
+
+.link-input.valid {
+  border-color: #22c55e;
+}
+
+/* 链接输入成功状态 */
+.link-input.success {
+  border-color: #10b981;
+  background: #ecfdf5;
+  color: #065f46;
+}
+
+.link-input.success:hover {
+  border-color: #059669;
+  background: #d1fae5;
+}
+
+/* 链接输入错误状态 */
+.link-input.error {
+  border-color: #ef4444;
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.link-input.error:hover {
+  border-color: #dc2626;
+  background: #fee2e2;
+}
+
+.link-status-icon {
+  position: absolute;
+  right: 40px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #10b981;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+/* 清除按钮样式 - 与上传图标位置一致 */
+.clear-button {
+  border: none;
+  background: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #374151;
+  transition: color 0.2s ease;
+  padding: 0;
+  height: 28px;
+}
+
+/* 文件输入区域需要相对定位以支持绝对定位的清除按钮 */
+.file-input {
+  position: relative;
+}
+
+/* 链接输入容器需要相对定位 */
+.link-input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/* 录制模式选择样式 */
+.recording-mode-container {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.recording-mode-label {
+  color: var(--color-main-piccolo);
+  font-weight: 500;
+}
+
+.recording-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.recording-btn {
+  flex: 1;
+  transition: all 0.3s ease;
+}
+
+.recording-btn.selected {
+  background: var(--color-main-piccolo);
+  color: var(--color-main-gohan);
+  border-color: var(--color-main-piccolo);
+}
+
+.recording-btn.disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+/* 卡片状态样式 */
+.card.selected {
+  border: 2px solid var(--color-main-piccolo);
+  box-shadow: 0 4px 20px rgba(78, 70, 180, 0.15);
+}
+
+.card.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.auto-join {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+  align-self: flex-start;
+}
+
+/* page-3 */
+.transcription-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 480px;
+}
+
+.transcription-box {
+  width: 100%;
+  height: 100%;
+  border-radius: 20px;
+  background: var(--color-main-beerus);
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.transcription-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 16px;
+}
+
+.transcription-controls {
+  display: flex;
+  gap: 24px;
+}
+
+.transcription-controls svg {
+  width: 24px;
+  height: 24px;
+  stroke: var(--color-main-gohan);
+  cursor: pointer;
+}
+
+.transcription-content {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 16px;
+}
+
+.transcription-content p {
+  margin-bottom: 16px;
+  line-height: 1.6;
+  color: black;
+}
+
+/* page-4 */
+.summary-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 480px;
+}
+
+.summary-box {
+  width: 100%;
+  height: 100%;
+  border-radius: 20px;
+  background: var(--color-main-beerus);
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.summary-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 16px;
+}
+
+.summary-controls {
+  display: flex;
+  gap: 24px;
+}
+
+.transcription-controls svg,
+.summary-controls svg {
+  width: 56px;
+  height: 56px;
+  stroke: var(--color-main-piccolo);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 12px;
+  border-radius: 10px;
+}
+
+.transcription-controls svg:hover,
+.summary-controls svg:hover {
+  stroke: var(--color-main-hit);
+  background-color: #f0f0f0;
+}
+
+.transcription-controls svg:active,
+.summary-controls svg:active {
+  background-color: #e0e0e0;
+}
+
+.transcription-box,
+.summary-box {
+  background: var(--color-main-goku);
+}
+
+.summary-content {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 16px;
+}
+
+.summary-content h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: black;
+}
+
+.summary-content ul {
+  margin-bottom: 24px;
+  padding-left: 20px;
+}
+
+.summary-content li {
+  margin-bottom: 12px;
+  line-height: 1.6;
+  color: black;
+}
+
+/* 为动画添加基础样式 */
+.button {
+  transition: none;
+  /* 禁用CSS transition，使用GSAP控制 */
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.page {
+  transform-origin: center center;
+}
+
+/* 确保动画流畅 */
+* {
+  will-change: auto;
+}
+
+@keyframes soundwave-bars {
+
+  0%,
+  100% {
+    stroke-opacity: 0.6;
+    stroke-width: 2;
+  }
+
+  50% {
+    stroke-opacity: 1;
+    stroke-width: 3;
+  }
+}
+
+/* 加载动画样式 */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 48px;
+  min-height: 200px;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid var(--color-main-goku);
+  border-top: 4px solid var(--color-main-piccolo);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.content-text {
+  opacity: 0;
+}
+
+.content-text.loaded {
+  opacity: 1;
+  animation: fadeInText 0.8s ease-out;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes fadeInText {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 步骤指示器样式 */
+.step-indicator .step-active {
+  color: var(--color-main-piccolo);
+}
+
+.step-indicator .step-inactive {
+  color: var(--color-main-trunks);
+}
