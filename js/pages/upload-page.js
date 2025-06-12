@@ -1,0 +1,700 @@
+// 第2页：上传页面模块
+// 包含文件上传、Zoom链接输入、实时录制功能的所有逻辑、动画和交互
+
+// 页面状态管理
+const UploadPageState = {
+  isInitialized: false,
+  isVisible: false,
+  
+  // 功能状态
+  isFileSelected: false,
+  isZoomLinkValid: false,
+  selectedRecordingMode: null,
+  selectedFile: null,
+  recordingState: 'idle', // 'idle' | 'recording' | 'completed'
+  
+  // 按钮状态
+  canClickNext: false
+};
+
+// 页面动画效果
+const UploadPageAnimations = {
+  // 页面进入动画
+// @param {HTMLElement} pageElement - 页面元素
+  pageEntry(pageElement) {
+    if (!pageElement || typeof gsap === 'undefined') return;
+    window.MeetingSummarizerUtils.AnimationHelpers.animatePageEntry(pageElement);
+  },
+
+  // 卡片选中动画
+// @param {HTMLElement} card - 卡片元素
+  cardSelect(card) {
+    if (!card || typeof gsap === 'undefined') return;
+    
+    gsap.to(card, {
+      scale: 1.02,
+      duration: 0.3,
+      ease: "power2.out"
+    });
+  },
+
+  // 卡片取消选中动画
+// @param {HTMLElement} card - 卡片元素
+  cardDeselect(card) {
+    if (!card || typeof gsap === 'undefined') return;
+    
+    gsap.to(card, {
+      scale: 1,
+      duration: 0.3,
+      ease: "power2.out"
+    });
+  },
+
+  // 成功状态动画
+// @param {HTMLElement} element - 目标元素
+  successState(element) {
+    if (!element || typeof gsap === 'undefined') return;
+    
+    gsap.fromTo(element, 
+      { scale: 1 },
+      { 
+        scale: 1.05,
+        duration: 0.2,
+        ease: "power2.out",
+        yoyo: true,
+        repeat: 1
+      }
+    );
+  },
+
+  // 录制脉冲动画
+// @param {HTMLElement} element - 录制元素
+  recordingPulse(element) {
+    if (!element || typeof gsap === 'undefined') return;
+    
+    gsap.to(element, {
+      scale: 1.1,
+      duration: 1,
+      ease: "power2.inOut",
+      yoyo: true,
+      repeat: -1
+    });
+  },
+
+  // 停止录制动画
+// @param {HTMLElement} element - 录制元素
+  stopRecording(element) {
+    if (!element || typeof gsap === 'undefined') return;
+    
+    gsap.killTweensOf(element);
+    gsap.to(element, {
+      scale: 1,
+      duration: 0.3,
+      ease: "power2.out"
+    });
+  }
+};
+
+// 页面控制器
+const UploadPageController = {
+  // 初始化页面
+  init() {
+    if (UploadPageState.isInitialized) {
+      console.log('上传页面已经初始化');
+      return;
+    }
+
+    console.log('初始化上传页面...');
+    
+    // 绑定事件
+    this.bindEvents();
+    
+    // 初始化按钮状态
+    this.updateButtonStates();
+    
+    // 标记为已初始化
+    UploadPageState.isInitialized = true;
+    
+    console.log('上传页面初始化完成');
+  },
+
+  // 绑定页面事件
+  bindEvents() {
+    // 绑定导航按钮
+    this.bindNavigationButtons();
+    
+    // 绑定文件上传事件
+    this.bindFileUploadEvents();
+    
+    // 绑定Zoom链接事件
+    this.bindZoomLinkEvents();
+    
+    // 绑定录制事件
+    this.bindRecordingEvents();
+    
+    console.log('上传页面事件绑定完成');
+  },
+
+  // 绑定导航按钮事件
+  bindNavigationButtons() {
+    const page2Buttons = document.querySelectorAll('#page-2 .button');
+    
+    if (page2Buttons.length >= 2) {
+      // Back按钮
+      page2Buttons[0].addEventListener('click', () => {
+        if (window.MeetingSummarizer) {
+          window.MeetingSummarizer.showPage(1);
+        }
+      });
+      
+      // Next按钮
+      page2Buttons[1].addEventListener('click', () => {
+        if (UploadPageState.canClickNext) {
+          if (window.MeetingSummarizer) {
+            window.MeetingSummarizer.showPage(3);
+          }
+        }
+      });
+    }
+  },
+
+  // 绑定文件上传事件
+  bindFileUploadEvents() {
+    const fileInput = document.getElementById('file-input-hidden');
+    const fileClearButton = document.getElementById('file-clear-button');
+    
+    if (fileInput) {
+      fileInput.addEventListener('change', this.handleFileSelect.bind(this));
+    }
+    
+    if (fileClearButton) {
+      fileClearButton.addEventListener('click', this.clearFileSelection.bind(this));
+    }
+  },
+
+  // 绑定Zoom链接事件
+  bindZoomLinkEvents() {
+    const zoomInput = document.getElementById('zoom-link-input');
+    const linkClearButton = document.getElementById('link-clear-button');
+    const autoRecordBtn = document.getElementById('auto-record-btn');
+    const manualRecordBtn = document.getElementById('manual-record-btn');
+    
+    if (zoomInput) {
+      zoomInput.addEventListener('input', this.handleZoomLinkInput.bind(this));
+    }
+    
+    if (linkClearButton) {
+      linkClearButton.addEventListener('click', this.clearLinkInput.bind(this));
+    }
+    
+    if (autoRecordBtn) {
+      autoRecordBtn.addEventListener('click', () => this.selectRecordingMode('auto'));
+    }
+    
+    if (manualRecordBtn) {
+      manualRecordBtn.addEventListener('click', () => this.selectRecordingMode('manual'));
+    }
+  },
+
+  /**
+   * 绑定录制事件
+   */
+  bindRecordingEvents() {
+    const recordInputArea = document.getElementById('record-input-area');
+    const recordClearButton = document.getElementById('record-clear-button');
+    
+    if (recordInputArea) {
+      recordInputArea.addEventListener('click', this.toggleLiveRecording.bind(this));
+    }
+    
+    if (recordClearButton) {
+      recordClearButton.addEventListener('click', this.clearLiveRecording.bind(this));
+    }
+  },
+
+  /**
+   * 处理文件选择
+   * @param {Event} event - 文件选择事件
+   */
+  handleFileSelect(event) {
+    const file = event.target.files[0];
+    const fileInputArea = document.getElementById('file-input-area');
+    const fileInputText = document.getElementById('file-input-text');
+    const uploadIcon = document.getElementById('upload-icon');
+    const fileClearButton = document.getElementById('file-clear-button');
+    
+    if (file) {
+      // 验证文件
+      if (window.MeetingSummarizerUtils.Validators.validateFile(file)) {
+        // 文件有效
+        UploadPageState.selectedFile = file;
+        UploadPageState.isFileSelected = true;
+        
+        // 更新UI
+        if (fileInputText) fileInputText.textContent = file.name;
+        if (fileInputArea) {
+          fileInputArea.classList.remove('error');
+          fileInputArea.classList.add('success');
+          UploadPageAnimations.successState(fileInputArea);
+        }
+        if (uploadIcon) uploadIcon.style.display = 'none';
+        if (fileClearButton) fileClearButton.style.display = 'block';
+        
+        // 选中文件卡片并禁用其他卡片
+        this.selectFileCard();
+        
+        console.log('文件选择成功:', file.name);
+      } else {
+        // 文件无效
+        if (fileInputArea) {
+          fileInputArea.classList.remove('success');
+          fileInputArea.classList.add('error');
+        }
+        
+        alert('请选择有效的音频文件（MP3、MP4、WAV、M4A格式，小于10MB）');
+        event.target.value = '';
+        
+        // 延迟移除错误状态
+        setTimeout(() => {
+          if (fileInputArea) fileInputArea.classList.remove('error');
+        }, 3000);
+      }
+    }
+    
+    this.updateButtonStates();
+  },
+
+  /**
+   * 处理Zoom链接输入
+   * @param {Event} event - 输入事件
+   */
+  handleZoomLinkInput(event) {
+    const link = event.target.value.trim();
+    const linkClearButton = document.getElementById('link-clear-button');
+    
+    if (link === '') {
+      // 链接为空时重置状态
+      UploadPageState.isZoomLinkValid = false;
+      event.target.classList.remove('success', 'error');
+      this.hideRecordingModeSelection();
+      this.restoreOtherCards();
+      if (linkClearButton) linkClearButton.style.display = 'none';
+    } else if (window.MeetingSummarizerUtils.Validators.validateZoomLink(link)) {
+      // 链接有效
+      UploadPageState.isZoomLinkValid = true;
+      event.target.classList.add('success');
+      event.target.classList.remove('error');
+      
+      // 选中Zoom卡片并禁用其他卡片
+      this.selectZoomCard();
+      
+      // 显示录制模式选择
+      this.showRecordingModeSelection();
+      
+      if (linkClearButton) linkClearButton.style.display = 'flex';
+      
+      console.log('Zoom链接验证成功');
+    } else {
+      // 链接无效
+      UploadPageState.isZoomLinkValid = false;
+      event.target.classList.add('error');
+      event.target.classList.remove('success');
+      
+      this.hideRecordingModeSelection();
+      this.restoreOtherCards();
+      
+      if (linkClearButton) linkClearButton.style.display = 'flex';
+      
+      // 延迟移除错误状态
+      setTimeout(() => {
+        event.target.classList.remove('error');
+      }, 2000);
+    }
+    
+    this.updateButtonStates();
+  },
+
+  /**
+   * 选择录制模式
+   * @param {string} mode - 录制模式 ('auto' 或 'manual')
+   */
+  selectRecordingMode(mode) {
+    UploadPageState.selectedRecordingMode = mode;
+    
+    const autoBtn = document.getElementById('auto-record-btn');
+    const manualBtn = document.getElementById('manual-record-btn');
+    
+    if (mode === 'auto') {
+      if (autoBtn) {
+        autoBtn.classList.add('selected');
+        autoBtn.classList.remove('disabled');
+      }
+      if (manualBtn) {
+        manualBtn.classList.remove('selected');
+        manualBtn.classList.add('disabled');
+      }
+    } else if (mode === 'manual') {
+      if (manualBtn) {
+        manualBtn.classList.add('selected');
+        manualBtn.classList.remove('disabled');
+      }
+      if (autoBtn) {
+        autoBtn.classList.remove('selected');
+        autoBtn.classList.add('disabled');
+      }
+    }
+    
+    this.updateButtonStates();
+    console.log('选择录制模式:', mode);
+  },
+
+  /**
+   * 切换实时录制状态
+   */
+  toggleLiveRecording() {
+    const recordInputArea = document.getElementById('record-input-area');
+    const recordInputText = document.getElementById('record-input-text');
+    const recordClearButton = document.getElementById('record-clear-button');
+    const recordIcon = document.getElementById('record-icon');
+    
+    if (UploadPageState.recordingState === 'idle') {
+      // 开始录制
+      UploadPageState.recordingState = 'recording';
+      
+      if (recordInputArea) {
+        recordInputArea.classList.add('recording');
+        UploadPageAnimations.recordingPulse(recordInputArea);
+      }
+      if (recordInputText) recordInputText.textContent = 'Recording...';
+      
+      // 禁用其他卡片
+      this.disableOtherCards();
+      
+      console.log('开始录制');
+    } else if (UploadPageState.recordingState === 'recording') {
+      // 结束录制
+      UploadPageState.recordingState = 'completed';
+      
+      if (recordInputArea) {
+        recordInputArea.classList.remove('recording');
+        recordInputArea.classList.add('success');
+        UploadPageAnimations.stopRecording(recordInputArea);
+        UploadPageAnimations.successState(recordInputArea);
+      }
+      if (recordInputText) recordInputText.textContent = 'Recording Completed';
+      if (recordIcon) recordIcon.style.display = 'none';
+      if (recordClearButton) recordClearButton.style.display = 'block';
+      
+      // 选中录制卡片
+      this.selectRecordCard();
+      
+      console.log('录制完成');
+    }
+    
+    this.updateButtonStates();
+  },
+
+  /**
+   * 清除文件选择
+   */
+  clearFileSelection() {
+    const fileInput = document.getElementById('file-input-hidden');
+    const fileInputText = document.getElementById('file-input-text');
+    const fileInputArea = document.getElementById('file-input-area');
+    const fileClearButton = document.getElementById('file-clear-button');
+    const uploadIcon = document.getElementById('upload-icon');
+    
+    // 重置状态
+    UploadPageState.isFileSelected = false;
+    UploadPageState.selectedFile = null;
+    
+    // 重置UI
+    if (fileInput) fileInput.value = '';
+    if (fileInputText) fileInputText.textContent = 'Choose a file';
+    if (fileInputArea) fileInputArea.classList.remove('success', 'error');
+    if (fileClearButton) fileClearButton.style.display = 'none';
+    if (uploadIcon) uploadIcon.style.display = 'block';
+    
+    // 恢复其他卡片
+    this.restoreOtherCards();
+    
+    this.updateButtonStates();
+    console.log('清除文件选择');
+  },
+
+  /**
+   * 清除链接输入
+   */
+  clearLinkInput() {
+    const zoomInput = document.getElementById('zoom-link-input');
+    const linkClearButton = document.getElementById('link-clear-button');
+    
+    // 重置状态
+    UploadPageState.isZoomLinkValid = false;
+    UploadPageState.selectedRecordingMode = null;
+    
+    // 重置UI
+    if (zoomInput) {
+      zoomInput.value = '';
+      zoomInput.classList.remove('success', 'error');
+    }
+    if (linkClearButton) linkClearButton.style.display = 'none';
+    
+    // 隐藏录制模式选择
+    this.hideRecordingModeSelection();
+    
+    // 恢复其他卡片
+    this.restoreOtherCards();
+    
+    this.updateButtonStates();
+    console.log('清除链接输入');
+  },
+
+  /**
+   * 清除实时录制
+   * @param {Event} event - 点击事件
+   */
+  clearLiveRecording(event) {
+    if (event) event.stopPropagation();
+    
+    const recordInputArea = document.getElementById('record-input-area');
+    const recordInputText = document.getElementById('record-input-text');
+    const recordClearButton = document.getElementById('record-clear-button');
+    const recordIcon = document.getElementById('record-icon');
+    
+    // 重置状态
+    UploadPageState.recordingState = 'idle';
+    
+    // 重置UI
+    if (recordInputArea) {
+      recordInputArea.classList.remove('recording', 'success', 'error');
+      UploadPageAnimations.stopRecording(recordInputArea);
+    }
+    if (recordInputText) recordInputText.textContent = 'Start Recording';
+    if (recordClearButton) recordClearButton.style.display = 'none';
+    if (recordIcon) recordIcon.style.display = 'block';
+    
+    // 恢复其他卡片
+    this.restoreOtherCards();
+    
+    this.updateButtonStates();
+    console.log('清除录制状态');
+  },
+
+  /**
+   * 选中文件卡片
+   */
+  selectFileCard() {
+    const fileCard = document.querySelector('#page-2 .card:first-child');
+    const zoomCard = document.querySelector('#page-2 .card:nth-child(2)');
+    const liveCard = document.querySelector('#page-2 .card:last-child');
+    
+    if (fileCard) {
+      fileCard.classList.add('selected');
+      UploadPageAnimations.cardSelect(fileCard);
+    }
+    if (zoomCard) zoomCard.classList.add('disabled');
+    if (liveCard) liveCard.classList.add('disabled');
+    
+    // 重置其他功能状态
+    UploadPageState.isZoomLinkValid = false;
+    UploadPageState.recordingState = 'idle';
+  },
+
+  /**
+   * 选中Zoom卡片
+   */
+  selectZoomCard() {
+    const fileCard = document.querySelector('#page-2 .card:first-child');
+    const zoomCard = document.querySelector('#page-2 .card:nth-child(2)');
+    const liveCard = document.querySelector('#page-2 .card:last-child');
+    
+    if (fileCard) fileCard.classList.add('disabled');
+    if (zoomCard) {
+      zoomCard.classList.add('selected');
+      UploadPageAnimations.cardSelect(zoomCard);
+    }
+    if (liveCard) liveCard.classList.add('disabled');
+    
+    // 重置其他功能状态
+    UploadPageState.isFileSelected = false;
+    UploadPageState.recordingState = 'idle';
+  },
+
+  /**
+   * 选中录制卡片
+   */
+  selectRecordCard() {
+    const fileCard = document.querySelector('#page-2 .card:first-child');
+    const zoomCard = document.querySelector('#page-2 .card:nth-child(2)');
+    const liveCard = document.querySelector('#page-2 .card:last-child');
+    
+    if (fileCard) fileCard.classList.remove('disabled');
+    if (zoomCard) zoomCard.classList.remove('disabled');
+    if (liveCard) {
+      liveCard.classList.add('selected');
+      UploadPageAnimations.cardSelect(liveCard);
+    }
+  },
+
+  /**
+   * 禁用其他卡片
+   */
+  disableOtherCards() {
+    const fileCard = document.querySelector('#page-2 .card:first-child');
+    const zoomCard = document.querySelector('#page-2 .card:nth-child(2)');
+    
+    if (fileCard) fileCard.classList.add('disabled');
+    if (zoomCard) zoomCard.classList.add('disabled');
+  },
+
+  /**
+   * 恢复其他卡片
+   */
+  restoreOtherCards() {
+    const allCards = document.querySelectorAll('#page-2 .card');
+    allCards.forEach(card => {
+      card.classList.remove('selected', 'disabled');
+      UploadPageAnimations.cardDeselect(card);
+    });
+  },
+
+  /**
+   * 显示录制模式选择
+   */
+  showRecordingModeSelection() {
+    const container = document.getElementById('recording-mode-container');
+    if (container) {
+      container.style.display = 'flex';
+      window.MeetingSummarizerUtils.AnimationHelpers.fadeIn(container);
+    }
+    
+    // 重置录制模式选择状态
+    UploadPageState.selectedRecordingMode = null;
+    const autoBtn = document.getElementById('auto-record-btn');
+    const manualBtn = document.getElementById('manual-record-btn');
+    
+    if (autoBtn) autoBtn.classList.remove('selected', 'disabled');
+    if (manualBtn) manualBtn.classList.remove('selected', 'disabled');
+  },
+
+  /**
+   * 隐藏录制模式选择
+   */
+  hideRecordingModeSelection() {
+    const container = document.getElementById('recording-mode-container');
+    if (container) {
+      container.style.display = 'none';
+    }
+    
+    UploadPageState.selectedRecordingMode = null;
+  },
+
+  /**
+   * 更新按钮状态
+   */
+  updateButtonStates() {
+    // 检查是否可以点击Next按钮
+    const canNext = UploadPageState.isFileSelected || 
+                   UploadPageState.isZoomLinkValid || 
+                   UploadPageState.recordingState === 'completed';
+    
+    UploadPageState.canClickNext = canNext;
+    
+    // 更新Next按钮样式
+    const nextButton = document.querySelector('#page-2 .button:nth-child(2)');
+    if (nextButton) {
+      if (canNext) {
+        nextButton.classList.remove('button-disabled');
+      } else {
+        nextButton.classList.add('button-disabled');
+      }
+    }
+  },
+
+  /**
+   * 重置页面状态
+   */
+  resetState() {
+    console.log('重置上传页面状态');
+    
+    // 重置所有状态
+    UploadPageState.isFileSelected = false;
+    UploadPageState.isZoomLinkValid = false;
+    UploadPageState.selectedRecordingMode = null;
+    UploadPageState.selectedFile = null;
+    UploadPageState.recordingState = 'idle';
+    UploadPageState.canClickNext = false;
+    
+    // 清除所有输入
+    this.clearFileSelection();
+    this.clearLinkInput();
+    this.clearLiveRecording();
+    
+    // 更新按钮状态
+    this.updateButtonStates();
+  },
+
+  /**
+   * 显示页面
+   */
+  show() {
+    console.log('显示上传页面');
+    
+    const pageElement = document.getElementById('page-2');
+    if (pageElement) {
+      UploadPageAnimations.pageEntry(pageElement);
+      UploadPageState.isVisible = true;
+    }
+  },
+
+  /**
+   * 隐藏页面
+   */
+  hide() {
+    console.log('隐藏上传页面');
+    UploadPageState.isVisible = false;
+  },
+
+  /**
+   * 销毁页面
+   */
+  destroy() {
+    console.log('销毁上传页面');
+    
+    // 重置状态
+    this.resetState();
+    UploadPageState.isInitialized = false;
+    UploadPageState.isVisible = false;
+  }
+};
+
+// 页面模块对象
+const UploadPage = {
+  init: UploadPageController.init.bind(UploadPageController),
+  show: UploadPageController.show.bind(UploadPageController),
+  hide: UploadPageController.hide.bind(UploadPageController),
+  destroy: UploadPageController.destroy.bind(UploadPageController),
+  resetState: UploadPageController.resetState.bind(UploadPageController),
+  state: UploadPageState
+};
+
+// 自动初始化并注册页面模块
+document.addEventListener('DOMContentLoaded', () => {
+  // 初始化页面
+  UploadPage.init();
+  
+  // 注册到全局应用
+  if (window.MeetingSummarizer) {
+    window.MeetingSummarizer.registerPageModule(2, UploadPage);
+  } else {
+    setTimeout(() => {
+      if (window.MeetingSummarizer) {
+        window.MeetingSummarizer.registerPageModule(2, UploadPage);
+      }
+    }, 100);
+  }
+});
+
+// 导出页面模块
+window.UploadPage = UploadPage;

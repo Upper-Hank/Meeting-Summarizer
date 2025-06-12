@@ -21,19 +21,13 @@ body {
   width: 600px;
 }
 
-.left-part>* {
-  opacity: 0;
-}
-
 .right-part {
   display: flex;
-  width: 680px;
+  justify-content: flex-end;
+  width: 100%;
+  min-width: 680px;
   height: 100%;
   border-radius: 20px;
-}
-
-.right-part>* {
-  opacity: 0;
 }
 
 .top-part {
@@ -52,7 +46,8 @@ body {
 .automation {
   display: flex;
   flex-direction: column;
-  width: 100%;
+  width: 80%;
+  min-width: 680px;
   height: 100%;
   border-radius: inherit;
   background: var(--color-main-goku);

@@ -23,7 +23,6 @@
 /* 悬停效果 */
 .button-style-1:hover {
   background: #5d56c3;
-  /* 稍微亮一点的颜色 */
   transform: translateY(-3px) scale(1.02);
   box-shadow: 0 8px 25px rgba(78, 70, 180, 0.3);
 }
@@ -31,7 +30,6 @@
 /* 点击效果 */
 .button-style-1:active {
   background: #4540a3;
-  /* 稍微暗一点的颜色 */
   transform: translateY(0px) scale(0.98);
   box-shadow: 0 2px 8px rgba(78, 70, 180, 0.2);
   transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
