@@ -84,7 +84,7 @@ const UploadPageController = {
           try {
             // 根据不同卡片状态调用不同的API
             await this.handleNextButtonClick();
-            
+
             // API调用成功后跳转到下一页
             if (window.MeetingSummarizer) {
               window.MeetingSummarizer.showPage(3);
@@ -290,41 +290,83 @@ const UploadPageController = {
   /**
    * 切换实时录制状态
    */
-  toggleLiveRecording() {
+  async toggleLiveRecording() {
     const recordInputArea = document.getElementById('record-input-area');
     const recordInputText = document.getElementById('record-input-text');
     const recordClearButton = document.getElementById('record-clear-button');
     const recordIcon = document.getElementById('record-icon');
 
     if (UploadPageState.recordingState === 'idle') {
-      // 开始录制
-      UploadPageState.recordingState = 'recording';
+      try {
+        // 调用开始录制API
+        const response = await fetch('http://127.0.0.1:9000/api/start-recording', { // 更正：使用完整的 API 地址
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({})
+        });
 
-      if (recordInputArea) {
-        recordInputArea.classList.add('recording');
+        const result = await response.json();
+
+        if (!result.success) {
+          throw new Error(result.error || '开始录制失败');
+        }
+
+        // 开始录制
+        UploadPageState.recordingState = 'recording';
+
+        if (recordInputArea) {
+          recordInputArea.classList.add('recording');
+        }
+        if (recordInputText) recordInputText.textContent = 'Recording...';
+
+        // 选中录制卡片并禁用其他卡片
+        this.selectRecordCard();
+
+        console.log('开始录制成功');
+      } catch (error) {
+        console.error('开始录制出错:', error);
+        alert('开始录制失败，请重试');
+        return;
       }
-      if (recordInputText) recordInputText.textContent = 'Recording...';
-
-      // 选中录制卡片并禁用其他卡片
-      this.selectRecordCard();
-
-      console.log('开始录制');
     } else if (UploadPageState.recordingState === 'recording') {
-      // 结束录制
-      UploadPageState.recordingState = 'completed';
+      try {
+        // 调用停止录制API
+        const response = await fetch('http://127.0.0.1:9000/api/stop-recording', { // 更正：使用完整的 API 地址
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({})
+        });
 
-      if (recordInputArea) {
-        recordInputArea.classList.remove('recording');
-        recordInputArea.classList.add('success');
+        const result = await response.json();
+
+        if (!result.success) {
+          throw new Error(result.error || '停止录制失败');
+        }
+
+        // 结束录制
+        UploadPageState.recordingState = 'completed';
+
+        if (recordInputArea) {
+          recordInputArea.classList.remove('recording');
+          recordInputArea.classList.add('success');
+        }
+        if (recordInputText) recordInputText.textContent = 'Recording Completed';
+        if (recordIcon) recordIcon.style.display = 'none';
+        if (recordClearButton) recordClearButton.style.display = 'block';
+
+        // 录制完成后保持录制卡片选中状态
+        // 不调用restoreOtherCards()，保持当前选中状态
+
+        console.log('录制完成成功');
+      } catch (error) {
+        console.error('停止录制出错:', error);
+        alert('停止录制失败，请重试');
+        return;
       }
-      if (recordInputText) recordInputText.textContent = 'Recording Completed';
-      if (recordIcon) recordIcon.style.display = 'none';
-      if (recordClearButton) recordClearButton.style.display = 'block';
-
-      // 录制完成后保持录制卡片选中状态
-      // 不调用restoreOtherCards()，保持当前选中状态
-
-      console.log('录制完成');
     }
 
     this.updateButtonStates();
@@ -535,15 +577,45 @@ const UploadPageController = {
   async uploadFileToAPI() {
     console.log('调用文件上传API');
     console.log('上传文件:', UploadPageState.selectedFile);
-    
-    // TODO: 实现文件上传API调用
-    // const formData = new FormData();
-    // formData.append('file', UploadPageState.selectedFile);
-    // const response = await fetch('/api/upload-file', {
-    //   method: 'POST',
-    //   body: formData
-    // });
-    // return response.json();
+
+    try {
+      const formData = new FormData();
+      formData.append('file', UploadPageState.selectedFile);
+
+      // Show loading notification
+      const loadingToast = window.MeetingSummarizerUtils.DocumentTools.showToast('Uploading file, please wait...', 'info', 0);
+
+      const response = await fetch('http://127.0.0.1:9000/api/upload', {
+        method: 'POST',
+        body: formData
+      });
+
+      // 关闭加载提示
+      if (loadingToast) loadingToast.close();
+
+      if (!response.ok) {
+        throw new Error(`服务器响应错误: ${response.status}`);
+      }
+
+      const result = await response.json();
+
+      if (!result.success) {
+        throw new Error(result.error || '文件上传失败');
+      }
+
+      console.log('文件上传成功:', result.data);
+      window.MeetingSummarizerUtils.DocumentTools.showToast('File uploaded successfully', 'success', 3000);
+
+      // 更新状态并导航到下一页
+      UploadPageState.isUploaded = true;
+      window.MeetingSummarizer.showPage(3); // 更正：使用 window.MeetingSummarizer
+
+      return result;
+    } catch (error) {
+      console.error('文件上传出错:', error);
+      window.MeetingSummarizerUtils.DocumentTools.showToast('File upload failed, please try again', 'error', 5000);
+      throw error;
+    }
   },
 
   /**
@@ -553,19 +625,32 @@ const UploadPageController = {
     console.log('调用Zoom链接处理API');
     console.log('Zoom链接:', document.getElementById('zoom-link-input').value);
     console.log('录制模式:', UploadPageState.selectedRecordingMode);
-    
-    // TODO: 实现Zoom链接处理API调用
-    // const response = await fetch('/api/process-zoom-link', {
-    //   method: 'POST',
-    //   headers: {
-    //     'Content-Type': 'application/json'
-    //   },
-    //   body: JSON.stringify({
-    //     zoomLink: document.getElementById('zoom-link-input').value,
-    //     recordingMode: UploadPageState.selectedRecordingMode
-    //   })
-    // });
-    // return response.json();
+
+    try {
+      const response = await fetch('http://localhost:9000/api/join_meeting', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          meeting_link: document.getElementById('zoom-link-input').value,
+          recording_mode: UploadPageState.selectedRecordingMode
+        })
+      });
+
+      const result = await response.json();
+
+      if (!result.success) {
+        throw new Error(result.error || 'Zoom会议加入失败');
+      }
+
+      console.log('Zoom会议加入成功:', result.data);
+      return result;
+    } catch (error) {
+      console.error('Zoom会议加入出错:', error);
+      alert('Zoom会议加入失败，请重试');
+      throw error;
+    }
   },
 
   /**
@@ -573,16 +658,30 @@ const UploadPageController = {
    */
   async uploadRecordingToAPI() {
     console.log('调用录制音频上传API');
-    
-    // TODO: 实现录制音频上传API调用
-    // const audioBlob = this.getRecordedAudioBlob();
-    // const formData = new FormData();
-    // formData.append('audio', audioBlob, 'recording.wav');
-    // const response = await fetch('/api/upload-recording', {
-    //   method: 'POST',
-    //   body: formData
-    // });
-    // return response.json();
+
+    try {
+      // 调用停止录制API
+      const response = await fetch('http://localhost:9000/api/stop-recording', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({})
+      });
+
+      const result = await response.json();
+
+      if (!result.success) {
+        throw new Error(result.error || '停止录制失败');
+      }
+
+      console.log('录制停止成功:', result.data);
+      return result;
+    } catch (error) {
+      console.error('录制停止出错:', error);
+      alert('录制停止失败，请重试');
+      throw error;
+    }
   },
 
   /**

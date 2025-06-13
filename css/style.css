@@ -52,6 +52,10 @@ body {
   height: 100%;
   border-radius: inherit;
   background: var(--color-main-goku);
+  align-items: center;
+  /* 水平居中 */
+  justify-content: center;
+  /* 垂直居中 */
 }
 
 /* page-2 */

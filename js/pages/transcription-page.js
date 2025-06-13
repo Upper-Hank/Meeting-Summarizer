@@ -48,93 +48,93 @@ Thank you for your attention. I'll now open the floor for questions.`,
     * @param {Function} onComplete - 完成回调函数
     * @param {Function} onError - 错误回调函数
     */
-   async startTranscription(onProgress, onComplete, onError) {
-     console.log('开始转录API轮询...');
-     
-     try {
-       // 重置轮询计数
-       this.currentPollCount = 0;
-       
-       // 测试用：5秒固定延迟
-       console.log('测试模式：等待5秒...');
-       await this.delay(5000);
-       
-       // 初始化进度
-       onProgress(10, 'Initializing transcription...');
-       
-       // 检查录制模式，决定是否设置超时
-       const isLiveRecording = this.checkIfLiveRecording();
-       if (isLiveRecording) {
-         this.maxPollAttempts = Infinity; // 实时录制不设超时
-       } else {
-         this.maxPollAttempts = 120; // 文件上传60秒超时
-       }
-       
-       // 开始轮询
-       this.startPolling(onProgress, onComplete, onError);
-       
-     } catch (error) {
-       console.error('转录API调用出错:', error);
-       onError('Transcription failed. Please try again.');
-     }
-   },
+  async startTranscription(onProgress, onComplete, onError) {
+    console.log('开始转录API轮询...');
+
+    try {
+      // 重置轮询计数
+      this.currentPollCount = 0;
+
+      // 测试用：5秒固定延迟
+      console.log('测试模式：等待5秒...');
+      await this.delay(5000);
+
+      // 初始化进度
+      onProgress(10, 'Initializing transcription...');
+
+      // 检查录制模式，决定是否设置超时
+      const isLiveRecording = this.checkIfLiveRecording();
+      if (isLiveRecording) {
+        this.maxPollAttempts = Infinity; // 实时录制不设超时
+      } else {
+        this.maxPollAttempts = 120; // 文件上传60秒超时
+      }
+
+      // 开始轮询
+      this.startPolling(onProgress, onComplete, onError);
+
+    } catch (error) {
+      console.error('转录API调用出错:', error);
+      onError('Transcription failed. Please try again.');
+    }
+  },
 
   /**
     * 检查是否为实时录制模式
     * @returns {boolean}
     */
-   checkIfLiveRecording() {
-     // 检查上传页面的状态，判断是否选择了录制卡片
-     if (window.UploadPageController && window.UploadPageController.state) {
-       return window.UploadPageController.state.recordingState !== 'idle';
-     }
-     
-     // 备用检查方法：查看页面元素状态
-     const recordCard = document.querySelector('#record-card');
-     return recordCard && recordCard.classList.contains('selected');
-   },
+  checkIfLiveRecording() {
+    // 检查上传页面的状态，判断是否选择了录制卡片
+    if (window.UploadPageController && window.UploadPageController.state) {
+      return window.UploadPageController.state.recordingState !== 'idle';
+    }
 
-   /**
-    * 开始轮询后端状态
-    * @param {Function} onProgress - 进度回调函数
-    * @param {Function} onComplete - 完成回调函数
-    * @param {Function} onError - 错误回调函数
-    */
-   startPolling(onProgress, onComplete, onError) {
-     this.pollTimer = setInterval(async () => {
-       try {
-         this.currentPollCount++;
-         
-         // 检查是否超时（仅对非实时录制）
-         if (this.maxPollAttempts !== Infinity && this.currentPollCount > this.maxPollAttempts) {
-           this.stopPolling();
-           onError('Transcription timeout. Please try again.');
-           return;
-         }
-         
-         // 调用后端API检查状态
-         const status = await this.checkTranscriptionStatus();
-         
-         // 简单的进度显示（不依赖后端进度）
-         onProgress(50, 'Processing transcription...');
-         
-         // 检查是否完成
-         if (status.completed) {
-           this.stopPolling();
-           onProgress(100, 'Transcription completed!');
-           
-           // 获取转录文本
-           const transcriptionText = await this.getTranscriptionText();
-           onComplete(transcriptionText);
-         }
-         
-       } catch (error) {
-         console.error('轮询出错:', error);
-         this.stopPolling();
-         onError('Transcription failed. Please try again.');
-       }
-     }, this.pollInterval);
-   },
+    // 备用检查方法：查看页面元素状态
+    const recordCard = document.querySelector('#record-card');
+    return recordCard && recordCard.classList.contains('selected');
+  },
+
+  /**
+   * 开始轮询后端状态
+   * @param {Function} onProgress - 进度回调函数
+   * @param {Function} onComplete - 完成回调函数
+   * @param {Function} onError - 错误回调函数
+   */
+  startPolling(onProgress, onComplete, onError) {
+    this.pollTimer = setInterval(async () => {
+      try {
+        this.currentPollCount++;
+
+        // 检查是否超时（仅对非实时录制）
+        if (this.maxPollAttempts !== Infinity && this.currentPollCount > this.maxPollAttempts) {
+          this.stopPolling();
+          onError('Transcription timeout. Please try again.');
+          return;
+        }
+
+        // 调用后端API检查状态
+        const status = await this.checkTranscriptionStatus();
+
+        // 简单的进度显示（不依赖后端进度）
+        onProgress(50, 'Processing transcription...');
+
+        // 检查是否完成
+        if (status.completed) {
+          this.stopPolling();
+          onProgress(100, 'Transcription completed!');
+
+          // 获取转录文本
+          const transcriptionText = await this.getTranscriptionText();
+          onComplete(transcriptionText);
+        }
+
+      } catch (error) {
+        console.error('轮询出错:', error);
+        this.stopPolling();
+        onError('Transcription failed. Please try again.');
+      }
+    }, this.pollInterval);
+  },
 
   /**
    * 停止轮询
@@ -147,38 +147,52 @@ Thank you for your attention. I'll now open the floor for questions.`,
   },
 
   /**
-   * 检查转录状态（模拟API调用）
+   * 检查转录状态
    * @returns {Promise<{completed: boolean, message?: string}>}
    */
   async checkTranscriptionStatus() {
-    // TODO: 替换为真实的API调用
-    // const response = await fetch('/api/transcription/status');
-    // return await response.json();
+    try {
+      const response = await fetch('http://localhost:9000/api/transcription/status');
+      const result = await response.json();
 
-    // 模拟API响应
-    await this.delay(50); // 模拟网络延迟
+      if (!result.success) {
+        throw new Error(result.error || '获取转录状态失败');
+      }
 
-    // 模拟随机完成（用于测试）
-    const shouldComplete = this.currentPollCount > 10 && Math.random() > 0.7;
-
-    return {
-      completed: shouldComplete,
-      message: shouldComplete ? 'Transcription completed!' : 'Processing audio...'
-    };
+      return {
+        completed: result.data.completed,
+        message: result.data.message,
+        progress: result.data.progress || 50
+      };
+    } catch (error) {
+      console.error('检查转录状态出错:', error);
+      // 出错时返回未完成状态
+      return {
+        completed: false,
+        message: '检查转录状态出错'
+      };
+    }
   },
 
   /**
-   * 获取转录文本（模拟API调用）
+   * 获取转录文本
    * @returns {Promise<string>}
    */
   async getTranscriptionText() {
-    // TODO: 替换为真实的API调用
-    // const response = await fetch('/api/transcription/text');
-    // return await response.text();
+    try {
+      const response = await fetch('http://localhost:9000/api/transcription/text');
+      const result = await response.json();
 
-    // 模拟API响应
-    await this.delay(100);
-    return this.mockTranscriptionText;
+      if (!result.success) {
+        throw new Error(result.error || '获取转录文本失败');
+      }
+
+      return result.data.transcript || '';
+    } catch (error) {
+      console.error('获取转录文本出错:', error);
+      // 出错时返回空字符串或错误提示
+      return '获取转录文本失败，请重试';
+    }
   },
 
   /**
@@ -258,58 +272,24 @@ const TranscriptionPageAnimations = {
   // @param {HTMLElement} textContainer - 文本容器
   showTextContainer(textContainer) {
     if (!textContainer) return;
-    
-    textContainer.style.display = 'block';
-    
+
     if (typeof gsap === 'undefined') {
       // 如果没有gsap，直接设置样式
       textContainer.style.opacity = '1';
-      textContainer.style.transform = 'translateY(0)';
       return;
     }
-    
+
     gsap.fromTo(textContainer,
-      { opacity: 0, y: 30 },
+      { opacity: 0 },
       {
         opacity: 1,
-        y: 0,
         duration: 0.6,
         ease: "power2.out"
       }
     );
   },
 
-  // 打字机效果动画
-  // @param {HTMLElement} textElement - 文本元素
-  // @param {string} text - 要显示的文本
-  // @param {Function} onComplete - 完成回调
-  typewriterEffect(textElement, text, onComplete) {
-    if (!textElement) return;
-    
-    if (typeof gsap === 'undefined') {
-      // 如果没有gsap，直接显示文本
-      textElement.textContent = text;
-      textElement.style.opacity = '1';
-      textElement.style.transform = 'translateY(0)';
-      
-      if (onComplete) setTimeout(onComplete, 500);
-      return;
-    }
 
-    textElement.textContent = '';
-
-    // 使用GSAP的文本动画
-    gsap.to(textElement, {
-      duration: Math.min(text.length * 0.02, 3), // 最多3秒
-      ease: "none",
-      onUpdate: function () {
-        const progress = this.progress();
-        const currentLength = Math.floor(text.length * progress);
-        textElement.textContent = text.substring(0, currentLength);
-      },
-      onComplete: onComplete
-    });
-  },
 
   // 进度条动画
   // @param {HTMLElement} progressBar - 进度条元素
@@ -404,39 +384,71 @@ const TranscriptionPageController = {
 
     if (controlButtons.length >= 3) {
       // 复制按钮（第一个SVG）
-      controlButtons[0].addEventListener('click', () => {
-        if (TranscriptionPageState.transcriptionStatus !== 'loading') {
+      if (controlButtons[0]._clickHandler) {
+        controlButtons[0].removeEventListener('click', controlButtons[0]._clickHandler);
+      }
+      controlButtons[0]._clickHandler = () => {
+        if (TranscriptionPageState.transcriptionStatus === 'completed') {
           this.copyTranscriptionText();
+        } else if (TranscriptionPageState.transcriptionStatus === 'loading') {
+          this.showToast('Transcription in progress, please wait...', 'info');
+        } else {
+          this.showToast('No text to copy', 'error');
         }
-      });
+      };
+      controlButtons[0].addEventListener('click', controlButtons[0]._clickHandler);
 
       // 下载按钮（第二个SVG）
-      controlButtons[1].addEventListener('click', () => {
-        if (TranscriptionPageState.transcriptionStatus !== 'loading') {
+      if (controlButtons[1]._clickHandler) {
+        controlButtons[1].removeEventListener('click', controlButtons[1]._clickHandler);
+      }
+      controlButtons[1]._clickHandler = () => {
+        if (TranscriptionPageState.transcriptionStatus === 'completed') {
           this.downloadTranscriptionText();
+        } else if (TranscriptionPageState.transcriptionStatus === 'loading') {
+          this.showToast('Transcription in progress, please wait...', 'info');
+        } else {
+          this.showToast('No text to download', 'error');
         }
-      });
+      };
+      controlButtons[1].addEventListener('click', controlButtons[1]._clickHandler);
 
       // 朗读/停止按钮（第三个SVG）
-      controlButtons[2].addEventListener('click', () => {
-        if (TranscriptionPageState.transcriptionStatus !== 'loading') {
+      if (controlButtons[2]._clickHandler) {
+        controlButtons[2].removeEventListener('click', controlButtons[2]._clickHandler);
+      }
+      controlButtons[2]._clickHandler = () => {
+        if (TranscriptionPageState.transcriptionStatus === 'completed') {
           this.toggleTextToSpeech();
+        } else if (TranscriptionPageState.transcriptionStatus === 'loading') {
+          this.showToast('Transcription in progress, please wait...', 'info');
+        } else {
+          this.showToast('No text to read', 'error');
         }
-      });
+      };
+      controlButtons[2].addEventListener('click', controlButtons[2]._clickHandler);
 
       // 添加鼠标悬停效果
       controlButtons.forEach(button => {
         button.style.cursor = 'pointer';
-        button.addEventListener('mouseenter', () => {
+        if (button._mouseenterHandler) {
+          button.removeEventListener('mouseenter', button._mouseenterHandler);
+        }
+        if (button._mouseleaveHandler) {
+          button.removeEventListener('mouseleave', button._mouseleaveHandler);
+        }
+        button._mouseenterHandler = () => {
           if (TranscriptionPageState.transcriptionStatus !== 'loading') {
             button.style.opacity = '0.7';
           }
-        });
-        button.addEventListener('mouseleave', () => {
+        };
+        button._mouseleaveHandler = () => {
           if (TranscriptionPageState.transcriptionStatus !== 'loading') {
             button.style.opacity = '1';
           }
-        });
+        };
+        button.addEventListener('mouseenter', button._mouseenterHandler);
+        button.addEventListener('mouseleave', button._mouseleaveHandler);
       });
     }
   },
@@ -530,17 +542,18 @@ const TranscriptionPageController = {
         TranscriptionPageAnimations.showTextContainer(textContainer);
       }
 
-      // 打字机效果显示文本
+      // 渐进式文本显示动画（与总结页面保持一致）
       if (transcriptionTextElement) {
         // 确保文本元素可见
         transcriptionTextElement.style.display = 'block';
         transcriptionTextElement.style.opacity = '1';
-        
-        TranscriptionPageAnimations.typewriterEffect(
+
+        // 使用统一的文本动画函数
+        window.MeetingSummarizerUtils.DocumentTools.animateTextReveal(
           transcriptionTextElement,
           transcriptionText,
           () => {
-            // 文本显示完成，成功状态通过CSS类实现
+            console.log('转录文本显示完成');
           }
         );
       }
@@ -640,12 +653,12 @@ const TranscriptionPageController = {
         nextButton.classList.add('button-disabled');
       }
     }
-    
+
     // 更新功能按钮状态
     const transcriptionControls = document.querySelector('#page-3 .transcription-controls');
     if (transcriptionControls) {
       const controlButtons = transcriptionControls.querySelectorAll('svg');
-      
+
       controlButtons.forEach(button => {
         if (isLoading) {
           // 加载中禁用按钮
@@ -734,34 +747,16 @@ const TranscriptionPageController = {
    */
   async copyTranscriptionText() {
     if (!TranscriptionPageState.transcriptionText) {
-      alert('No text to copy');
+      this.showToast('No text to copy', 'error');
       return;
     }
 
-    try {
-      await navigator.clipboard.writeText(TranscriptionPageState.transcriptionText);
-
-      // 显示成功提示
-      this.showToast('Text copied to clipboard', 'success');
-
-    } catch (error) {
-      console.error('复制失败:', error);
-
-      // 降级方案：使用传统方法
-      const textArea = document.createElement('textarea');
-      textArea.value = TranscriptionPageState.transcriptionText;
-      document.body.appendChild(textArea);
-      textArea.select();
-
-      try {
-        document.execCommand('copy');
-        this.showToast('Text copied to clipboard', 'success');
-      } catch (fallbackError) {
-        this.showToast('Copy failed, please select text manually', 'error');
-      }
-
-      document.body.removeChild(textArea);
-    }
+    // 使用DocumentTools复制文本
+    window.MeetingSummarizerUtils.DocumentTools.copyText(
+      TranscriptionPageState.transcriptionText,
+      (message) => this.showToast(message, 'success'),
+      (message) => this.showToast(message, 'error')
+    );
   },
 
   /**
@@ -769,117 +764,79 @@ const TranscriptionPageController = {
    */
   downloadTranscriptionText() {
     if (!TranscriptionPageState.transcriptionText) {
-      alert('No text to download');
+      this.showToast('No text to download', 'error');
       return;
     }
 
-    try {
-      // 创建文件内容
-      const content = TranscriptionPageState.transcriptionText;
-      const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-
-      // 创建下载链接
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-
-      // 生成文件名（包含时间戳）
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
-      link.download = `meeting-transcription-${timestamp}.txt`;
-
-      // 触发下载
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
-      // 清理URL对象
-      URL.revokeObjectURL(url);
-
-      this.showToast('File download started', 'success');
-
-    } catch (error) {
-      console.error('下载失败:', error);
-      this.showToast('Download failed, please try again', 'error');
-    }
+    // 使用DocumentTools下载文本
+    window.MeetingSummarizerUtils.DocumentTools.downloadText(
+      TranscriptionPageState.transcriptionText,
+      'meeting-transcription',
+      (message) => this.showToast(message, 'success'),
+      (message) => this.showToast(message, 'error')
+    );
   },
 
   /**
    * 切换文本朗读功能
    */
   toggleTextToSpeech() {
-    if (!TranscriptionPageState.transcriptionText) {
-      alert('No text to read');
+    // 新增：转录进行中禁止朗读，提示一致
+    if (TranscriptionPageState.transcriptionStatus === 'loading') {
+      this.showToast('Transcription in progress, please wait...', 'info');
       return;
     }
-
-    // 检查浏览器支持
-    if (!('speechSynthesis' in window)) {
-      alert('Your browser does not support text-to-speech');
+    if (!TranscriptionPageState.transcriptionText) {
+      this.showToast('No text to read', 'error');
       return;
     }
 
     const synth = window.speechSynthesis;
 
-    // 如果正在朗读，则停止
+    // 防止多次回调导致重复toast
+    if (!this._speechStopped) this._speechStopped = false;
     if (synth.speaking) {
-      synth.cancel();
-      this.showToast('Speech stopped', 'info');
-      this.updateSpeechButton(false);
+      if (!this._speechStopped) {
+        this._speechStopped = true;
+        window.MeetingSummarizerUtils.DocumentTools.stopSpeaking(
+          (message) => {
+            this.showToast(message, 'info');
+            this.updateSpeechButton(false);
+            setTimeout(() => { this._speechStopped = false; }, 500);
+          }
+        );
+      }
       return;
     }
 
-    try {
-      // 创建语音合成实例
-      const utterance = new SpeechSynthesisUtterance(TranscriptionPageState.transcriptionText);
-
-      // 设置语音参数
-      utterance.rate = 0.9; // 语速
-      utterance.pitch = 1; // 音调
-      utterance.volume = 0.8; // 音量
-
-      // 尝试设置中文语音（如果可用）
-      const voices = synth.getVoices();
-      const chineseVoice = voices.find(voice =>
-        voice.lang.includes('zh') || voice.lang.includes('cmn')
-      );
-      if (chineseVoice) {
-        utterance.voice = chineseVoice;
-      }
-
-      // 设置事件监听器
-      utterance.onstart = () => {
-        this.showToast('Speech started', 'info');
+    // 使用DocumentTools朗读文本
+    this._speechStopped = false;
+    const isPlaying = window.MeetingSummarizerUtils.DocumentTools.speakText(
+      TranscriptionPageState.transcriptionText,
+      (message) => {
+        this.showToast(message, 'info');
         this.updateSpeechButton(true);
-      };
+      },
+      (message) => {
+        if (!this._speechStopped) {
+          this._speechStopped = true;
+          this.showToast(message, 'success');
+          this.updateSpeechButton(false);
+          setTimeout(() => { this._speechStopped = false; }, 500);
+        }
+      },
+      (message) => {
+        if (!this._speechStopped) {
+          this._speechStopped = true;
+          this.showToast(message, 'error');
+          this.updateSpeechButton(false);
+          setTimeout(() => { this._speechStopped = false; }, 500);
+        }
+      }
+    );
 
-      utterance.onend = () => {
-        this.showToast('Speech completed', 'success');
-        this.updateSpeechButton(false);
-      };
-
-      utterance.onerror = (event) => {
-        console.error('朗读出错:', event.error);
-        this.showToast('Speech failed, please try again', 'error');
-        this.updateSpeechButton(false);
-      };
-
-      // 开始朗读
-      synth.speak(utterance);
-
-    } catch (error) {
-      console.error('朗读功能出错:', error);
-      this.showToast('Speech function error, please try again', 'error');
-    }
-  },
-
-  /**
-   * 更新朗读按钮状态
-   * @param {boolean} isPlaying - 是否正在播放
-   */
-  updateSpeechButton(isPlaying) {
-    const speechButton = document.querySelector('#page-3 .transcription-controls svg:nth-child(3)');
-    if (speechButton) {
-      speechButton.style.color = isPlaying ? '#007bff' : 'black';
+    if (!isPlaying) {
+      this.updateSpeechButton(false);
     }
   },
 
@@ -889,54 +846,21 @@ const TranscriptionPageController = {
    * @param {string} type - 消息类型 ('success', 'error', 'info')
    */
   showToast(message, type = 'info') {
-    // 创建提示元素
-    const toast = document.createElement('div');
-    toast.textContent = message;
-    toast.style.cssText = `
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      padding: 12px 20px;
-      border-radius: 6px;
-      color: white;
-      font-size: 14px;
-      font-weight: 500;
-      z-index: 10000;
-      opacity: 0;
-      transform: translateY(-20px);
-      transition: all 0.3s ease;
-      max-width: 300px;
-      word-wrap: break-word;
-    `;
-
-    // 设置颜色主题
-    const colors = {
-      success: '#28a745',
-      error: '#dc3545',
-      info: '#17a2b8'
-    };
-    toast.style.backgroundColor = colors[type] || colors.info;
-
-    // 添加到页面
-    document.body.appendChild(toast);
-
-    // 显示动画
-    setTimeout(() => {
-      toast.style.opacity = '1';
-      toast.style.transform = 'translateY(0)';
-    }, 10);
-
-    // 自动移除
-    setTimeout(() => {
-      toast.style.opacity = '0';
-      toast.style.transform = 'translateY(-20px)';
-      setTimeout(() => {
-        if (document.body.contains(toast)) {
-          document.body.removeChild(toast);
-        }
-      }, 300);
-    }, 3000);
+    window.MeetingSummarizerUtils.DocumentTools.showToast(message, type);
   },
+
+  /**
+   * 更新朗读按钮状态
+   * @param {boolean} isPlaying - 是否正在播放
+   */
+  updateSpeechButton(isPlaying) {
+    const speechButton = document.querySelector('#page-3 .transcription-controls .read-button');
+    if (speechButton) {
+      speechButton.style.color = isPlaying ? '#007bff' : 'black';
+    }
+  },
+
+
 
   /**
    * 销毁页面

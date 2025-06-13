@@ -67,7 +67,7 @@ const WelcomePageController = {
     console.log('点击开始按钮');
 
     const startButton = document.querySelector('#page-1 .button');
-    
+
     // 跳转到第二页（上传页面）
     if (window.MeetingSummarizer && window.MeetingSummarizer.showPage) {
       window.MeetingSummarizer.showPage(2);
@@ -126,6 +126,16 @@ const WelcomePage = {
   show: WelcomePageController.show.bind(WelcomePageController),
   hide: WelcomePageController.hide.bind(WelcomePageController),
   destroy: WelcomePageController.destroy.bind(WelcomePageController),
+  /**
+   * 重置页面状态
+   */
+  resetState() {
+    console.log('重置欢迎页面状态');
+
+    // 重置状态
+    WelcomePageState.isInitialized = true; // 保持初始化状态，因为页面已经加载
+    WelcomePageState.isVisible = false;
+  },
   state: WelcomePageState
 };
 
@@ -137,11 +147,18 @@ document.addEventListener('DOMContentLoaded', () => {
   // 注册到全局应用
   if (window.MeetingSummarizer) {
     window.MeetingSummarizer.registerPageModule(1, WelcomePage);
+    // 注册后主动触发首页显示，确保动画
+    if (window.MeetingSummarizer.getCurrentPage && window.MeetingSummarizer.getCurrentPage() === 1) {
+      window.MeetingSummarizer.showPage(1);
+    }
   } else {
     // 如果应用还未加载，延迟注册
     setTimeout(() => {
       if (window.MeetingSummarizer) {
         window.MeetingSummarizer.registerPageModule(1, WelcomePage);
+        if (window.MeetingSummarizer.getCurrentPage && window.MeetingSummarizer.getCurrentPage() === 1) {
+          window.MeetingSummarizer.showPage(1);
+        }
       }
     }, 100);
   }
