@@ -56,7 +56,6 @@ Thank you for your attention. I'll now open the floor for questions.`,
       this.currentPollCount = 0;
 
       // 测试用：5秒固定延迟
-      console.log('测试模式：等待5秒...');
       await this.delay(5000);
 
       // 初始化进度
@@ -289,8 +288,6 @@ const TranscriptionPageAnimations = {
     );
   },
 
-
-
   // 进度条动画
   // @param {HTMLElement} progressBar - 进度条元素
   // @param {number} progress - 进度百分比 (0-100)
@@ -355,11 +352,9 @@ const TranscriptionPageController = {
     const page3Buttons = document.querySelectorAll('#page-3 .button');
 
     if (page3Buttons.length >= 2) {
-      // Back按钮
+      // Finish按钮（第一个按钮）
       page3Buttons[0].addEventListener('click', () => {
-        if (window.MeetingSummarizer) {
-          window.MeetingSummarizer.showPage(2);
-        }
+        this.handleFinish();
       });
 
       // Next按钮
@@ -860,7 +855,37 @@ const TranscriptionPageController = {
     }
   },
 
+  /**
+   * 处理完成按钮点击
+   */
+  handleFinish() {
+    console.log('会议转录完成！');
 
+    // 显示确认对话框
+    if (confirm('Are you sure you want to complete the meeting transcription and return to the home page? All data will be cleared.')) {
+      // 重置应用并返回首页
+      this.resetApplication();
+      window.MeetingSummarizerUtils.DocumentTools.showToast('Application reset and returned to home page', 'success');
+    }
+  },
+
+  /**
+   * 重置整个应用
+   */
+  resetApplication() {
+    console.log('重置整个应用');
+
+    // 重置所有页面状态
+    if (window.WelcomePage) window.WelcomePage.resetState();
+    if (window.UploadPage) window.UploadPage.resetState();
+    this.resetState(); // 重置当前页面状态
+    if (window.SummaryPage) window.SummaryPage.resetState();
+
+    // 返回第一页
+    if (window.MeetingSummarizer) {
+      window.MeetingSummarizer.showPage(1);
+    }
+  },
 
   /**
    * 销毁页面

@@ -68,12 +68,25 @@ const WelcomePageController = {
 
     const startButton = document.querySelector('#page-1 .button');
 
-    // 跳转到第二页（上传页面）
-    if (window.MeetingSummarizer && window.MeetingSummarizer.showPage) {
-      window.MeetingSummarizer.showPage(2);
-    } else {
-      console.error('MeetingSummarizer 应用未找到或 showPage 方法不可用');
-    }
+    // 检查后端服务是否已启动
+    fetch('http://localhost:9000/api/transcription/status', { method: 'GET' })
+      .then(response => {
+        if (response.ok) {
+          // 后端服务可用，正常跳转
+          if (window.MeetingSummarizer && window.MeetingSummarizer.showPage) {
+            window.MeetingSummarizer.showPage(2);
+          } else {
+            console.error('MeetingSummarizer 应用未找到或 showPage 方法不可用');
+          }
+        } else {
+          // 服务未响应，提示用户
+          alert('后端服务未启动，请先在终端运行：python3 v3.0-main/app.py');
+        }
+      })
+      .catch(error => {
+        // 网络错误或服务未启动
+        alert('后端服务未启动，请先在终端运行：python3 v3.0-main/app.py');
+      });
   },
 
   /**

@@ -11,8 +11,7 @@ const SummaryPageState = {
   summaryText: '',
   isRendered: false,
 
-  // 按钮状态
-  canClickFinish: false
+  // 按钮状态 - finish按钮现在始终可用
 };
 
 // 总结模拟器
@@ -211,8 +210,6 @@ const SummaryPageAnimations = {
     );
   },
 
-
-
   /**
    * 进度条动画
    * @param {HTMLElement} progressBar - 进度条元素
@@ -398,9 +395,7 @@ const SummaryPageController = {
 
       // Finish按钮
       page4Buttons[1].addEventListener('click', () => {
-        if (SummaryPageState.canClickFinish) {
-          this.handleFinish();
-        }
+        this.handleFinish();
       });
     }
   },
@@ -418,7 +413,6 @@ const SummaryPageController = {
 
     // 更新状态
     SummaryPageState.summaryStatus = 'loading';
-    SummaryPageState.canClickFinish = false;
 
     // 获取UI元素
     const loadingContainer = document.getElementById('summary-loading');
@@ -467,7 +461,6 @@ const SummaryPageController = {
     // 更新状态
     SummaryPageState.summaryStatus = 'completed';
     SummaryPageState.summaryText = summaryText;
-    SummaryPageState.canClickFinish = true;
     SummaryPageState.isRendered = true;
     console.log('SummaryPageState 更新 (完成):', JSON.parse(JSON.stringify(SummaryPageState)));
 
@@ -514,7 +507,6 @@ const SummaryPageController = {
     // 更新状态
     SummaryPageState.summaryStatus = 'error';
     SummaryPageState.summaryText = ''; // 错误时清空文本
-    SummaryPageState.canClickFinish = false;
     console.log('SummaryPageState 更新 (错误):', JSON.parse(JSON.stringify(SummaryPageState)));
 
     // 获取UI元素
@@ -696,17 +688,12 @@ const SummaryPageController = {
    * 更新按钮状态
    */
   updateButtonStates() {
-    const canFinish = SummaryPageState.summaryStatus === 'completed';
     const isLoading = SummaryPageState.summaryStatus === 'loading';
 
-    // 更新Finish按钮样式
+    // 更新Finish按钮样式 - 始终保持启用状态
     const finishButton = document.querySelector('#page-4 .button:nth-child(2)');
     if (finishButton) {
-      if (canFinish) {
-        finishButton.classList.remove('button-disabled');
-      } else {
-        finishButton.classList.add('button-disabled');
-      }
+      finishButton.classList.remove('button-disabled');
     }
 
     // 更新功能按钮状态
@@ -740,7 +727,6 @@ const SummaryPageController = {
     SummaryPageState.summaryStatus = 'idle';
     SummaryPageState.summaryText = '';
     SummaryPageState.isRendered = false;
-    SummaryPageState.canClickFinish = false;
 
     // 重置UI
     const loadingContainer = document.getElementById('summary-loading');
