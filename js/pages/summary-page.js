@@ -179,9 +179,16 @@ const SummaryPageAnimations = {
   // 文本容器显示动画
 // @param {HTMLElement} textContainer - 文本容器
   showTextContainer(textContainer) {
-    if (!textContainer || typeof gsap === 'undefined') return;
+    if (!textContainer) return;
     
     textContainer.style.display = 'block';
+    
+    if (typeof gsap === 'undefined') {
+      // 如果没有gsap，直接设置样式
+      textContainer.style.opacity = '1';
+      textContainer.style.transform = 'translateY(0)';
+      return;
+    }
     
     gsap.fromTo(textContainer,
       { opacity: 0, y: 30 },
@@ -201,15 +208,23 @@ const SummaryPageAnimations = {
    * @param {Function} onComplete - 完成回调
    */
   progressiveTextReveal(textElement, text, onComplete) {
-    if (!textElement || typeof gsap === 'undefined') {
-      textElement.innerHTML = this.formatSummaryText(text);
-      if (onComplete) onComplete();
-      return;
-    }
+    if (!textElement) return;
     
     // 将Markdown文本转换为HTML
     const formattedText = this.formatSummaryText(text);
     textElement.innerHTML = formattedText;
+    
+    if (typeof gsap === 'undefined') {
+      // 如果没有gsap，直接显示所有元素
+      const elements = textElement.querySelectorAll('h1, h2, h3, p, li, strong, em');
+      elements.forEach(el => {
+        el.style.opacity = '1';
+        el.style.transform = 'translateY(0)';
+      });
+      
+      if (onComplete) setTimeout(onComplete, 500);
+      return;
+    }
     
     // 获取所有文本节点和元素
     const elements = textElement.querySelectorAll('h1, h2, h3, p, li, strong, em');
@@ -278,24 +293,7 @@ const SummaryPageAnimations = {
     });
   },
 
-  /**
-   * 成功状态动画
-   * @param {HTMLElement} element - 目标元素
-   */
-  successState(element) {
-    if (!element || typeof gsap === 'undefined') return;
-    
-    gsap.fromTo(element,
-      { scale: 1 },
-      {
-        scale: 1.01,
-        duration: 0.4,
-        ease: "power2.out",
-        yoyo: true,
-        repeat: 1
-      }
-    );
-  },
+  // 注意：成功状态动画已移至CSS实现
 
   /**
    * 完成庆祝动画
@@ -467,7 +465,7 @@ const SummaryPageController = {
     
     // 获取UI元素
     const loadingContainer = document.getElementById('summary-loading');
-    const textContainer = document.getElementById('summary-text-container');
+    const summaryContent = document.querySelector('#page-4 .summary-content');
     const summaryTextElement = document.getElementById('summary-text');
     
     // 停止加载动画
@@ -477,19 +475,20 @@ const SummaryPageController = {
     
     // 延迟显示文本容器
     setTimeout(() => {
-      if (textContainer) {
-        SummaryPageAnimations.showTextContainer(textContainer);
-      }
-      
-      // 渐进式显示总结文本
+      // 确保文本元素可见
       if (summaryTextElement) {
+        summaryTextElement.style.display = 'block';
+        summaryTextElement.style.opacity = '1';
+        
+        // 渐进式显示总结文本
         SummaryPageAnimations.progressiveTextReveal(
           summaryTextElement,
           summaryText,
           () => {
-            // 文本显示完成后的回调
-            SummaryPageAnimations.successState(textContainer);
-            SummaryPageAnimations.celebrationAnimation(textContainer);
+            // 文本显示完成，成功状态通过CSS类实现
+            if (summaryContent) {
+              SummaryPageAnimations.celebrationAnimation(summaryContent);
+            }
           }
         );
       }

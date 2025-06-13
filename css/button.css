@@ -1,3 +1,4 @@
+/* 按钮基础样式 */
 .button {
   border-radius: 8px;
   display: flex;
@@ -10,10 +11,30 @@
   position: relative;
   overflow: hidden;
   font-weight: bold;
+  will-change: transform, box-shadow;
+}
+
+/* 按钮ripple效果 */
+.button::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.button:active::before {
+  width: 300px;
+  height: 300px;
 }
 
 /* 按钮基本样式 */
-.button-style-1 {
+.button-style-solid {
   padding: 16px;
   background: var(--color-main-piccolo);
   color: var(--color-main-gohan);
@@ -21,40 +42,96 @@
 }
 
 /* 悬停效果 */
-.button-style-1:hover {
+.button-style-solid:hover {
   background: #5d56c3;
   transform: translateY(-3px) scale(1.02);
   box-shadow: 0 8px 25px rgba(78, 70, 180, 0.3);
 }
 
 /* 点击效果 */
-.button-style-1:active {
+.button-style-solid:active {
   background: #4540a3;
   transform: translateY(0px) scale(0.98);
   box-shadow: 0 2px 8px rgba(78, 70, 180, 0.2);
   transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* Focus状态 */
+.button-style-solid:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(78, 70, 180, 0.3), var(--shadow-sm);
+}
+
+/* Loading状态 */
+.button-style-solid.loading {
+  pointer-events: none;
+  position: relative;
+}
+
+.button-style-solid.loading::after {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
+  border-radius: 50%;
+  animation: button-spin 1s linear infinite;
+}
+
+@keyframes button-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
 
 
-.button-style-2 {
+
+.button-style-ghost {
   padding: 16px;
   background: transparent;
   color: var(--color-main-piccolo);
   border: 1px solid var(--color-main-piccolo);
 }
 
-.button-style-2:hover {
+.button-style-ghost:hover {
   background: rgba(78, 70, 180, 0.1);
   transform: translateY(-3px) scale(1.02);
   box-shadow: 0 6px 20px rgba(78, 70, 180, 0.15);
 }
 
-.button-style-2:active {
+.button-style-ghost:active {
   background: rgba(78, 70, 180, 0.2);
   transform: translateY(0px) scale(0.98);
   box-shadow: 0 2px 8px rgba(78, 70, 180, 0.1);
   transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Focus状态 */
+.button-style-ghost:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(78, 70, 180, 0.3);
+}
+
+/* Loading状态 */
+.button-style-ghost.loading {
+  pointer-events: none;
+  position: relative;
+}
+
+.button-style-ghost.loading::after {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
+  border-radius: 50%;
+  animation: button-spin 1s linear infinite;
 }
 
 .button-fullWidth {
