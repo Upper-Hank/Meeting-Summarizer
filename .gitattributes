@@ -1,0 +1,2 @@
+v3.0-main/model/model.bin filter=lfs diff=lfs merge=lfs -text
+*.bin filter=lfs diff=lfs merge=lfs -text
