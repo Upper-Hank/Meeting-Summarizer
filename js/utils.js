@@ -8,8 +8,8 @@ const Validators = {
   // @returns {boolean} - 验证是否通过
   validateFile(file) {
     const allowedTypes = ['audio/mp3', 'audio/mpeg', 'audio/mp4', 'audio/wav', 'audio/x-m4a'];
-    const allowedExtensions = ['.mp3', '.mp4', '.wav', '.m4a'];
-    const maxSize = 10 * 1024 * 1024; // 10MB
+    const allowedExtensions = ['.mp3', '.mp4', '.wav', '.m4a', '.avi', '.mov', '.flv', '.aac'];
+        const maxSize = 100 * 1024 * 1024; // 100MB
 
     // 检查文件扩展名
     const fileName = file.name.toLowerCase();
